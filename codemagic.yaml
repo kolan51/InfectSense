@@ -1,0 +1,53 @@
+workflows:
+  ios-release:
+    name: InfectaSense iOS Release Build
+    instance_type: mac_mini_m2
+    max_build_duration: 120
+    integrations:
+      app_store_connect: infectasense_connect # 👈 set this in Codemagic UI
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.yourcompany.infectasense # 👈 your bundle ID here
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+      vars:
+        APP_ID: 1234567890 # 👈 your Apple App ID here
+    scripts:
+      - name: Get Flutter dependencies
+        script: |
+          flutter pub get
+
+      - name: Install CocoaPods
+        script: |
+          find . -name "Podfile" -execdir pod install \;
+
+      - name: Generate splash screen (optional)
+        script: |
+          flutter pub run flutter_native_splash:create
+
+      - name: Build IPA for release
+        script: |
+          flutter build ipa --release \
+            --build-name=1.0.0 \
+            --build-number=$(($(app-store-connect get-latest-testflight-build-number "$APP_ID") + 1))
+
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+      - flutter_drive.log
+
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        beta_groups:
+          - Internal Testers
+        submit_to_app_store: false
+      email:
+        recipients:
+          - jasa1244@gmail.com
+        notify:
+          success: true
+          failure: true
