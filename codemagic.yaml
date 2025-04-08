@@ -5,7 +5,7 @@ workflows:
     max_build_duration: 60
     environment:
       ios_signing:
-        distribution_type: development  # or "ad_hoc"
+        distribution_type: ad_hoc  # or "ad_hoc"
         bundle_identifier: com.example.infectaSense
       flutter: stable
       xcode: latest
